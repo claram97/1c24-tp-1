@@ -41,6 +41,11 @@ services:
             - "/sys:/sys:ro"
             - "/var/lib/docker/:/var/lib/docker:ro"
 
+    node:
+        build: ./app
+        ports:
+            - "3000:3000"
+
 volumes:
     grafana_config:
         driver: local
