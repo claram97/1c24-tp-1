@@ -4,6 +4,10 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.get('/ping', (req, res) => {
+    res.status(200).send("Pong!");
+});
+
 // Manejador para rutas no encontradas
 app.use((req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });
