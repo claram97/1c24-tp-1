@@ -45,6 +45,7 @@ scenarios:
       - get:
           url: '/quote'
   - name: Dictionary some
+    flow:
       - get:
           url: '/dictionary?word=hello'
       - get:
