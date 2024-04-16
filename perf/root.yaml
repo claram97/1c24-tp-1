@@ -26,3 +26,22 @@ scenarios:
     flow:
       - get:
           url: '/ping'
+  - name: Some endopoints
+    flow:
+      - get:
+          url: '/dictionary?word=<word>'
+      - get:
+          url: '/ping'
+      - get: 
+          url: '/spaceflight_news'
+  - name: Dictionary
+    flow:
+      - get:
+          url: '/dictionary?word=<word>'
+  - name: Spaceflight news y quote
+    flow:
+      - get:
+          url: '/spaceflight_news'
+      -get:
+          url: '/quote'
+      
