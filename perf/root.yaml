@@ -1,7 +1,8 @@
 config:
   environments:
     api:
-      target: 'http://localhost:5555/api'
+      #target: 'http://localhost:5555/api'
+      target: 'http://localhost:3000'
       plugins:
         statsd:
           host: localhost
@@ -21,7 +22,7 @@ config:
     
 
 scenarios:
-  - name: Root (/)
+  - name: Ping (/ping)
     flow:
       - get:
-          url: '/'
+          url: '/ping'
