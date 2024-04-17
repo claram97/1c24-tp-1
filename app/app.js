@@ -31,33 +31,74 @@ app.get('/ping', (req, res) => {
     res.status(200).send("Pong!");
 });
 
+// app.get('/dictionary', async (req, res) => {
+//     const word = req.query.word;
+//     console.log(`Pedido de dictionary sobre la palabra ${word}`);
+    
+//     try {
+//         const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+
+//         const definitions = result.data.map(entry => ({
+//               word: entry.word,
+//               phonetic: entry.phonetic,
+//               meanings: entry.meanings.map(meaning => ({
+//                 partOfSpeech: meaning.partOfSpeech,
+//                 definitions: meaning.definitions.map(definition => ({
+//                   definition: definition.definition,
+//                   synonyms: definition.synonyms,
+//                   antonyms: definition.antonyms,
+//                   example: definition.example
+//                 }))
+//               }))
+//             }));
+
+//         res.status(200).json(definitions);
+//       } catch (error) {
+//         console.error('Error obteniendo resultado desde dictionaryapi:', error);
+//         res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+//       }
+// });
+
+const CACHE_EXPIRATION_SECONDS = 10; // Tiempo de expiración en segundos
+
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
+    // Verificar si la palabra está en caché en Redis
+    const cachedDefinition = await redisClient.get(`dictionary:${word}`);
 
+    if (cachedDefinition) {
+      console.log(`La palabra ${word} se encontró en la caché de Redis.`);
+      return res.status(200).json(JSON.parse(cachedDefinition));
+    }
     try {
-        const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      // Si la palabra no está en caché, hacer la solicitud a la API
+      const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
 
-        const definitions = result.data.map(entry => ({
-              word: entry.word,
-              phonetic: entry.phonetic,
-              meanings: entry.meanings.map(meaning => ({
-                partOfSpeech: meaning.partOfSpeech,
-                definitions: meaning.definitions.map(definition => ({
+      const definitions = result.data.map(entry => ({
+          word: entry.word,
+          phonetic: entry.phonetic,
+          meanings: entry.meanings.map(meaning => ({
+              partOfSpeech: meaning.partOfSpeech,
+              definitions: meaning.definitions.map(definition => ({
                   definition: definition.definition,
                   synonyms: definition.synonyms,
                   antonyms: definition.antonyms,
                   example: definition.example
-                }))
               }))
-            }));
+          }))
+      }));
 
-        res.status(200).json(definitions);
-      } catch (error) {
+      // Guardar la palabra en caché en Redis con tiempo de expiración
+      await redisClient.set(`dictionary:${word}`, JSON.stringify(definitions), {EX: CACHE_EXPIRATION_SECONDS});
+
+      res.status(200).json(definitions);
+    } catch (error) {
         console.error('Error obteniendo resultado desde dictionaryapi:', error);
         res.status(500).send('Error when consulting the dictionary, contact your service administrator');
-      }
+    }
 });
+
 
 const HEADLINE_COUNT = 5;
 app.get('/spaceflight_news', async (req, res) => {
