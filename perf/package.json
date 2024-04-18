@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "artillery": "^2.0.10",
-    "artillery-plugin-statsd": "^2.2.1"
+    "artillery-plugin-statsd": "^2.2.1",
+    "statsd": "^0.9.0"
   }
 }
