@@ -20,6 +20,8 @@
     "artillery": "^2.0.10",
     "axios": "^1.6.8",
     "express": "^4.19.2",
-    "express-rate-limit": "^7.2.0"
+    "express-rate-limit": "^6.7.0",
+    "node-statsd": "^0.1.1",
+    "redis": "^4.6.5"
   }
 }
