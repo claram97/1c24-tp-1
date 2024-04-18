@@ -1,8 +1,19 @@
 const express = require('express');
 const axios = require('axios');
 
+const { rateLimit } = require('express-rate-limit');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const limiter = rateLimit({
+	windowMs: 50 * 1000, // 50 seconds
+	max: 200, // Limit each IP to 200 requests per `window` (here, per 50 secs)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
+
+app.use(limiter);
 
 app.get('/ping', (req, res) => {
     res.status(200).send("Pong!");
