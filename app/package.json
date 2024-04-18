@@ -1,5 +1,5 @@
 {
-  "name": "arqui-tp1",
+  "name": "1c24-tp-1",
   "version": "1.0.0",
   "description": "TP1 de Arquitectura de Software",
   "main": "statsd.config.js",
@@ -8,17 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/claram97/arqui-tp1.git"
+    "url": "git+https://github.com/claram97/1c24-tp-1"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/claram97/arqui-tp1/issues"
+    "url": "https://github.com/claram97/1c24-tp-1/issues"
   },
-  "homepage": "https://github.com/claram97/arqui-tp1#readme",
+  "homepage": "https://github.com/claram97/1c24-tp-1#readme",
   "dependencies": {
     "artillery": "^2.0.10",
+    "artillery-plugin-statsd": "^2.2.1",
     "axios": "^1.6.8",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "node-statsd": "^0.1.1"
   }
 }
