@@ -43,6 +43,8 @@ services:
         build: ./app
         deploy:
             replicas: 3
+       # environment:
+        #    - CHOKIDAR_USEPOLLING=true
 
 volumes:
     grafana_config:
