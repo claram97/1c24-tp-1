@@ -1,10 +1,15 @@
 const express = require('express');
 const axios = require('axios');
-
 const { rateLimit } = require('express-rate-limit');
+const StatsD = require('node-statsd');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const dogstatsd = new StatsD({
+  host: 'graphite',
+  port: 8125,
+});
 
 const limiter = rateLimit({
 	windowMs: 50 * 1000, // 50 seconds
@@ -15,8 +20,16 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+app.use((req, res, next) => {
+  req.startTime = Date.now();
+  next();
+});
+
 app.get('/ping', (req, res) => {
     res.status(200).send("Pong!");
+    const responseTime = Date.now() - req.startTime;
+    dogstatsd.timing(`ping_response_time`, responseTime);
+    dogstatsd.timing(`ping_latency`, responseTime);
 });
 
 app.get('/dictionary', async (req, res) => {
@@ -25,7 +38,8 @@ app.get('/dictionary', async (req, res) => {
 
     try {
         const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-
+        const latency = Date.now() - req.startTime;
+        dogstatsd.timing(`dictionary_latency`, latency);
         const definitions = result.data.map(entry => ({
               word: entry.word,
               phonetic: entry.phonetic,
@@ -41,6 +55,8 @@ app.get('/dictionary', async (req, res) => {
             }));
 
         res.status(200).json(definitions);
+        const responseTime = Date.now() - req.startTime;
+        dogstatsd.timing(`dictionary_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde dictionaryapi:', error);
         res.status(500).send('Error when consulting the dictionary, contact your service administrator');
@@ -53,11 +69,16 @@ app.get('/spaceflight_news', async (req, res) => {
 
     try {
         const result = await axios.get(`https://api.spaceflightnewsapi.net/v4/articles/?limit=${HEADLINE_COUNT}`);
+        const latency = Date.now() - req.startTime;
+        dogstatsd.timing(`space_news_latency`, latency);
+
         const titles = [];
 
         result.data.results.forEach(result => {titles.push(result.title)} )
 
         res.status(200).json(titles);
+        const responseTime = Date.now() - req.startTime;
+        dogstatsd.timing(`space_news_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
         res.status(500).send('Error when consulting the news, contact your service administrator');
@@ -69,6 +90,8 @@ app.get('/quote', async (req, res) => {
 
     try {
         const result = await axios.get(`https://api.quotable.io/quotes/random`);
+        const latency = Date.now() - req.startTime;
+        dogstatsd.timing(`quote_latency`, latency);
 
         const quote = result.data.map(quote => ({
                       quote: quote.content,
@@ -76,6 +99,8 @@ app.get('/quote', async (req, res) => {
                     }));
 
         res.status(200).json(quote[0]);
+        const responseTime = Date.now() - req.startTime;
+        dogstatsd.timing(`quote_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde quotable:', error);
         res.status(500).send('Error when retrieving quote, contact your service administrator');
