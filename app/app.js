@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const StatsD = require('node-statsd');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,11 @@ process.on('SIGTERM', async () => {
   console.log('Disconnected from Redis');
 });
 
+const dogstatsd = new StatsD({
+  host: 'graphite',
+  port: 8125,
+});
+
 // Middleware para establecer startTime en cada solicitud entrante
 app.use((req, res, next) => {
   req.startTime = Date.now(); // Establecer el tiempo de inicio de la solicitud
@@ -29,35 +35,10 @@ app.use((req, res, next) => {
 
 app.get('/ping', (req, res) => {
     res.status(200).send("Pong!");
+    const responseTime = Date.now() - req.startTime;
+    dogstatsd.timing(`ping_response_time`, responseTime);
+    dogstatsd.timing(`ping_latency`, responseTime);
 });
-
-// app.get('/dictionary', async (req, res) => {
-//     const word = req.query.word;
-//     console.log(`Pedido de dictionary sobre la palabra ${word}`);
-    
-//     try {
-//         const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-
-//         const definitions = result.data.map(entry => ({
-//               word: entry.word,
-//               phonetic: entry.phonetic,
-//               meanings: entry.meanings.map(meaning => ({
-//                 partOfSpeech: meaning.partOfSpeech,
-//                 definitions: meaning.definitions.map(definition => ({
-//                   definition: definition.definition,
-//                   synonyms: definition.synonyms,
-//                   antonyms: definition.antonyms,
-//                   example: definition.example
-//                 }))
-//               }))
-//             }));
-
-//         res.status(200).json(definitions);
-//       } catch (error) {
-//         console.error('Error obteniendo resultado desde dictionaryapi:', error);
-//         res.status(500).send('Error when consulting the dictionary, contact your service administrator');
-//       }
-// });
 
 const CACHE_EXPIRATION_SECONDS = 10; // Tiempo de expiración en segundos
 
@@ -66,14 +47,19 @@ app.get('/dictionary', async (req, res) => {
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
     // Verificar si la palabra está en caché en Redis
     const cachedDefinition = await redisClient.get(`dictionary:${word}`);
-
+  
     if (cachedDefinition) {
       console.log(`La palabra ${word} se encontró en la caché de Redis.`);
+      const responseTime = Date.now() - req.startTime;
+      dogstatsd.timing(`dictionary_response_time`, responseTime);
+      dogstatsd.timing(`dictionary_latency`, responseTime);
       return res.status(200).json(JSON.parse(cachedDefinition));
     }
     try {
       // Si la palabra no está en caché, hacer la solicitud a la API
       const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      const latency = Date.now() - req.startTime;
+      dogstatsd.timing(`dictionary_latency`, latency);
 
       const definitions = result.data.map(entry => ({
           word: entry.word,
@@ -93,6 +79,8 @@ app.get('/dictionary', async (req, res) => {
       await redisClient.set(`dictionary:${word}`, JSON.stringify(definitions), {EX: CACHE_EXPIRATION_SECONDS});
 
       res.status(200).json(definitions);
+      const responseTime = Date.now() - req.startTime;
+      dogstatsd.timing(`dictionary_response_time`, responseTime);
     } catch (error) {
         console.error('Error obteniendo resultado desde dictionaryapi:', error);
         res.status(500).send('Error when consulting the dictionary, contact your service administrator');
@@ -110,19 +98,28 @@ app.get('/spaceflight_news', async (req, res) => {
     
     if (spaceNews) {
       titles = JSON.parse(spaceNews);
+      const latency = Date.now() - req.startTime;
+      dogstatsd.timing(`space_news_latency`, latency);
+      const responseTime = Date.now() - req.startTime;
+      dogstatsd.timing(`space_news_response_time`, responseTime);
+      return res.status(200).json(titles);
     }
     else {
       try {
         const result = await axios.get(`https://api.spaceflightnewsapi.net/v4/articles/?limit=${HEADLINE_COUNT}`);
+        const latency = Date.now() - req.startTime;
+        dogstatsd.timing(`space_news_latency`, latency);
         result.data.results.forEach(result => {titles.push(result.title)} )
       } catch (error) {
         console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
-        res.status(500).send('Error when consulting the news, contact your service administrator');
+        return res.status(500).send('Error when consulting the news, contact your service administrator');
       }
     }
 
     redisClient.set('space-news', JSON.stringify(titles), {EX: SPACE_NEWS_EXPIRATION});
     res.status(200).json(titles);
+    const responseTime = Date.now() - req.startTime;
+    dogstatsd.timing(`space_news_response_time`, responseTime);
 });
 
 app.get('/quote', async (req, res) => {
@@ -130,13 +127,15 @@ app.get('/quote', async (req, res) => {
 
     try {
         const result = await axios.get(`https://api.quotable.io/quotes/random`);
-
+        const latency = Date.now() - req.startTime;
+        dogstatsd.timing(`quote_latency`, latency);
         const quote = result.data.map(quote => ({
                       quote: quote.content,
                       author: quote.author
                     }));
-
-        res.status(200).json(quote[0]);
+        const responseTime = Date.now() - req.startTime;
+        dogstatsd.timing(`quote_latency`, responseTime);
+        return res.status(200).json(quote[0]);
       } catch (error) {
         console.error('Error obteniendo resultado desde quotable:', error);
         res.status(500).send('Error when retrieving quote, contact your service administrator');
