@@ -121,7 +121,7 @@ app.get('/quote', async (req, res) => {
 
         res.status(200).json(quote[0]);
         const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`latency.quote_response_time`, responseTime);
+        myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde quotable:', error);
         res.status(500).send('Error when retrieving quote, contact your service administrator');
