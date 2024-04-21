@@ -13,6 +13,8 @@
   "dependencies": {
     "artillery": "^2.0.10",
     "artillery-plugin-statsd": "^2.2.1",
+    "hot-shots": "^10.0.0",
+    "node-statsd": "^0.1.1",
     "statsd": "^0.9.0"
   }
 }

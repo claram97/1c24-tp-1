@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const StatsD = require('node-statsd');
+// const StatsD = require('node-statsd');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,9 +22,15 @@ process.on('SIGTERM', async () => {
   console.log('Disconnected from Redis');
 });
 
-const dogstatsd = new StatsD({
-  host: 'graphite',
-  port: 8125,
+// const dogstatsd = new StatsD({
+//   host: 'graphite',
+//   port: 8125,
+// });
+
+var StatsD = require('hot-shots'),
+dogstatsd = new StatsD({
+  host: 'graphite',  
+  port: 8125
 });
 
 // Middleware para establecer startTime en cada solicitud entrante
@@ -36,8 +42,8 @@ app.use((req, res, next) => {
 app.get('/ping', (req, res) => {
     res.status(200).send("Pong!");
     const responseTime = Date.now() - req.startTime;
-    dogstatsd.timing(`throughput.ping_response_time`, responseTime);
-    dogstatsd.timing(`latency.ping_latency`, responseTime);
+    dogstatsd.gauge(`throughput.ping_response_time`, responseTime);
+    dogstatsd.gauge(`latency.ping_latency`, responseTime);
 });
 
 const CACHE_EXPIRATION_SECONDS = 10; // Tiempo de expiración en segundos
