@@ -10,6 +10,24 @@ myStats = new StatsD({
   port: 8125
 });
 
+const HEADLINE_COUNT = 5;
+
+const SuccessCodes = {
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204
+};
+
+const ErrorCodes = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
+
 // Middleware para establecer startTime en cada solicitud entrante
 app.use((req, res, next) => {
   req.startTime = Date.now(); // Establecer el tiempo de inicio de la solicitud
@@ -23,8 +41,21 @@ app.get('/ping', (req, res) => {
   myStats.gauge(`latency.ping_latency`, responseTime);
 });
 
+async function getDefinitions(word) {
+  try {
+      const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      return response.data; // Devuelve directamente los datos de las definiciones
+  } catch (error) {
+      throw new Error(`Error al obtener las definiciones desde dictionaryapi: ${error.message}`);
+  }
+}
+
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
+    if (word == null) {
+      return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
+    }
+    
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
 
     try {
@@ -54,7 +85,6 @@ app.get('/dictionary', async (req, res) => {
       }
 });
 
-const HEADLINE_COUNT = 5;
 app.get('/spaceflight_news', async (req, res) => {
     console.log(`Pedido de noticias sobre el espacio`);
 
