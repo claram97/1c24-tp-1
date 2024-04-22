@@ -40,7 +40,7 @@ app.get('/ping', (req, res) => {
     myStats.gauge(`latency.ping_latency`, responseTime);
 });
 
-const CACHE_EXPIRATION_SECONDS = 10; // Tiempo de expiración en segundos
+const CACHE_EXPIRATION_SECONDS = 40; // Tiempo de expiración en segundos
 
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
