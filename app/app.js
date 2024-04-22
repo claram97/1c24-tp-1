@@ -25,7 +25,10 @@ app.get('/ping', (req, res) => {
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
-
+    if (word == null) {
+      return res.status(200).send("Please provide a word");
+    }
+    
     try {
         const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         const latency = Date.now() - req.startTime;
