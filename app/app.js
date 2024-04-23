@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const {createClient} = require('redis');
-const SPACE_NEWS_EXPIRATION = 10;
+const SPACE_NEWS_EXPIRATION = 40;
 
 const redisClient = createClient({
   url: 'redis://redis:6379'
@@ -44,6 +44,9 @@ const CACHE_EXPIRATION_SECONDS = 40; // Tiempo de expiración en segundos
 
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
+    if (word == null) {
+      res.status(400).send('Please provide a word');
+    }
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
     // Verificar si la palabra está en caché en Redis
     const cachedDefinition = await redisClient.get(`dictionary:${word}`);
