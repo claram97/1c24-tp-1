@@ -1,0 +1,49 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:3000'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Stable
+      duration: 30
+      arrivalRate: 2
+    - name: Ramp up
+      duration: 60
+      arrivalRate: 2
+      rampTo: 500
+    - name: Stable
+      duration: 40
+      arrivalRate: 500
+    - name: Ramp up
+      duration: 60
+      arrivalRate: 500
+      rampTo: 1000
+    - name: Stable
+      duration: 40
+      arrivalRate: 1000
+    - name: Ramp down
+      duration: 60
+      arrivalRate: 1000
+      rampTo: 700
+    - name: Stable
+      duration: 40
+      arrivalRate: 700
+    - name: Ramp down
+      duration: 120
+      arrivalRate: 700
+      rampTo: 0    
+
+scenarios:
+  - name: "Quote Test"
+    flow:
+      - get:
+          url: "/quote"
+          expect:
+            - statusCode: 200
