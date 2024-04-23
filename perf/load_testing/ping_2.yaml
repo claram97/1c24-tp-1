@@ -1,0 +1,36 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:3000'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Stable
+      duration: 30
+      arrivalRate: 2
+    - name: Ramp up
+      duration: 60
+      arrivalRate: 2
+      rampTo: 30
+    - name: Stable
+      duration: 60
+      arrivalRate: 30
+    - name: Ramp down
+      duration: 30
+      arrivalRate: 30
+      rampTo: 0
+    
+
+scenarios:
+  - name: "Ping Test"
+    flow:
+      - get:
+          url: "/ping"
+          expect:
+            - statusCode: 200
