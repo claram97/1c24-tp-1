@@ -41,15 +41,6 @@ app.get('/ping', (req, res) => {
   myStats.gauge(`latency.ping_latency`, responseTime);
 });
 
-async function getDefinitions(word) {
-  try {
-      const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      return response.data; // Devuelve directamente los datos de las definiciones
-  } catch (error) {
-      throw new Error(`Error al obtener las definiciones desde dictionaryapi: ${error.message}`);
-  }
-}
-
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
     if (word == null) {
