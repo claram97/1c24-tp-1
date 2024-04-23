@@ -26,7 +26,7 @@ app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
     if (word == null) {
-      return res.status(200).send("Please provide a word");
+      return res.status(400).send("Please provide a word");
     }
     
     try {
