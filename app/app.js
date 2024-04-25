@@ -4,11 +4,30 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const nodeId = process.env.HOSTNAME;
+
 var StatsD = require('hot-shots'),
 myStats = new StatsD({
-  host: 'graphite',  
+  host: 'graphite',
   port: 8125
 });
+
+const HEADLINE_COUNT = 5;
+
+const SuccessCodes = {
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204
+};
+
+const ErrorCodes = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
 
 // Middleware para establecer startTime en cada solicitud entrante
 app.use((req, res, next) => {
@@ -27,11 +46,12 @@ app.get('/ping', (req, res) => {
 
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
-    console.log(`Pedido de dictionary sobre la palabra ${word}`);
     if (word == null) {
-      return res.status(400).send("Please provide a word");
+      return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
     }
-    
+
+    console.log(`Pedido de dictionary sobre la palabra ${word}`);
+
     try {
         const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         const latency = Date.now() - req.startTime;
@@ -59,7 +79,6 @@ app.get('/dictionary', async (req, res) => {
       }
 });
 
-const HEADLINE_COUNT = 5;
 app.get('/spaceflight_news', async (req, res) => {
     console.log(`Pedido de noticias sobre el espacio`);
 
@@ -96,7 +115,7 @@ app.get('/quote', async (req, res) => {
 
         res.status(200).json(quote[0]);
         const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`latency.quote_response_time`, responseTime);
+        myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde quotable:', error);
         res.status(500).send('Error when retrieving quote, contact your service administrator');
