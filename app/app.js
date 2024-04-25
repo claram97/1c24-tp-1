@@ -3,6 +3,7 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const nodeId = process.env.HOSTNAME;
 var StatsD = require('hot-shots'),
 myStats = new StatsD({
   host: 'graphite',  
@@ -12,10 +13,12 @@ myStats = new StatsD({
 // Middleware para establecer startTime en cada solicitud entrante
 app.use((req, res, next) => {
   req.startTime = Date.now(); // Establecer el tiempo de inicio de la solicitud
+  res.setHeader('X-Node-Id', nodeId);
   next(); // Llamar a la siguiente función de middleware en la cadena
 });
 
 app.get('/ping', (req, res) => {
+  console.log("Pong!")
   res.status(200).send("Pong!");
   const responseTime = Date.now() - req.startTime;
   myStats.gauge(`throughput.ping_response_time`, responseTime);
