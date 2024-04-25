@@ -1,8 +1,7 @@
 config:
   environments:
     api:
-      #target: 'http://localhost:5555/api'
-      target: 'http://localhost:3000'
+      target: 'http://localhost:5555/api'
       plugins:
         statsd:
           host: localhost
@@ -26,45 +25,4 @@ scenarios:
     flow:
       - get:
           url: '/ping'
-  - name: Some endpoints
-    flow:
-      - get:
-          url: '/dictionary?word=<word>'
-      - get:
-          url: '/ping'
-      - get: 
-          url: '/spaceflight_news'
-  - name: Dictionary
-    flow:
-      - get:
-          url: '/dictionary?word=word'
-  - name: Spaceflight news y quote
-    flow:
-      - get:
-          url: '/spaceflight_news'
-      - get:
-          url: '/quote'
-  - name: Dictionary some
-    flow:
-      - get:
-          url: '/dictionary?word=hello'
-      - get:
-          url: '/dictionary?word=bye'
-      - get:
-          url: '/dictionary?word=tree'
-  - name: Quote some
-    flow:
-      - get:
-          url: '/quote'
-      - get:
-          url: '/quote'
-      - get:
-          url: '/quote'
-  - name: Spaceflight news some
-    flow:
-      - get:
-          url: '/spaceflight_news'
-      - get:
-          url: '/spaceflight_news'
-      - get:
-          url: '/spaceflight_news'
+ 
