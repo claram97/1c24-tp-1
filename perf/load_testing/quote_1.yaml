@@ -10,6 +10,7 @@ config:
 
   pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
 
+  #Duración: 3 minutos
   phases:
     - name: Stable
       duration: 30
@@ -26,7 +27,6 @@ config:
       arrivalRate: 30
       rampTo: 0
     
-
 scenarios:
   - name: "Quote Test"
     flow:
