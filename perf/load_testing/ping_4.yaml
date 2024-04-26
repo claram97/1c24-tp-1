@@ -10,31 +10,52 @@ config:
 
   pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
 
+  #Duración: 6 minutos
   phases:
     - name: Stable
       duration: 30
       arrivalRate: 2
     - name: Ramp up
-      duration: 60
+      duration: 40
       arrivalRate: 2
-      rampTo: 500
+      rampTo: 120
     - name: Stable
-      duration: 40
-      arrivalRate: 500
-    - name: Stable
-      duration: 40
-      arrivalRate: 500
+      duration: 60
+      arrivalRate: 120
     - name: Ramp down
       duration: 30
-      arrivalRate: 500
-      rampTo: 300
+      arrivalRate: 120
+      rampTo: 100
     - name: Stable
-      duration: 40
-      arrivalRate: 300
+      duration: 30
+      arrivalRate: 100
+    - name: Ramp up
+      duration: 30
+      arrivalRate: 100
+      rampTo: 150
+    - name: Stable
+      duration: 30
+      arrivalRate: 150
     - name: Ramp down
       duration: 60
-      arrivalRate: 300
-      rampTo: 0    
+      arrivalRate: 150
+      rampTo: 90
+    - name: Stable
+      duration: 10
+      arrivalRate: 90
+    - name: Ramp down
+      duration: 30
+      arrivalRate: 90
+      rampTo: 30
+    - name: Stable
+      duration: 5
+      arrivalRate: 30
+    - name: Ramp down
+      duration: 10
+      arrivalRate: 30
+      rampTo: 0
+
+    
 
 scenarios:
   - name: "Ping Test"
