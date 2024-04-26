@@ -50,10 +50,11 @@ config:
 
     
 
+
 scenarios:
-  - name: "Ping Test"
+  - name: "Space News Test"
     flow:
       - get:
-          url: "/ping"
+          url: "/spaceflight_news"
           expect:
             - statusCode: 200
