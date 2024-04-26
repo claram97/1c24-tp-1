@@ -10,6 +10,7 @@ config:
 
   pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
 
+  #Duración: 5 minutos
   phases:
     - name: Stable
       duration: 30
