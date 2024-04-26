@@ -37,7 +37,6 @@ config:
       arrivalRate: 300
       rampTo: 0    
 
-
 scenarios:
   - name: "Space News Test"
     flow:
