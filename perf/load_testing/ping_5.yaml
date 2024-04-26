@@ -48,8 +48,6 @@ config:
       arrivalRate: 48
       rampTo: 0
 
-    
-
 scenarios:
   - name: "Ping Test"
     flow:
