@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 const limiter = rateLimit({
 	windowMs: 50 * 1000, // 50 seconds
-	max: 200, // Limit each IP to 200 requests per `window` (here, per 50 secs)
+	max: 200, // Limit each IP to max requests per `window` (here, per 50 secs)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 })
