@@ -66,7 +66,7 @@ app.get('/dictionary', async (req, res) => {
 
   console.log(`Pedido de dictionary sobre la palabra ${word}`);
   // Verificar si la palabra está en caché en Redis
-  const definitions = await redisClient.get(`dictionary:${word}`);
+  let definitions = await redisClient.get(`dictionary:${word}`);
 
   if (definitions) {
     console.log(`La palabra ${word} se encontró en la caché de Redis.`);
@@ -95,15 +95,16 @@ app.get('/dictionary', async (req, res) => {
           }))
       }));
       res.status(200).json(definitions);
-    } catch (error) {
-      console.error('Error obteniendo resultado desde dictionaryapi:', error.response.statusText);
-      
+    } catch (error) {      
+      let errorMessage = "";
       if (error.response) {
-          const errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
-          res.status(error.response.status).send(errorMessage);
+        errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+        res.status(error.response.status).send(errorMessage);
       } else {
-          res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+        errorMessage = `Error when consulting the dictionary, contact your service administrator`;
+        res.status(500).send(errorMessage);
       }
+      console.log(errorMessage);
       const responseTime = Date.now() - req.startTime;
       myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       return;
