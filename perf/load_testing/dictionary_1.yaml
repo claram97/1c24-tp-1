@@ -34,7 +34,8 @@ config:
       rampTo: 0
 
 scenarios:
-  - flow:
+  - name: "Dictionary Test"
+    flow:
       - loop:
           - get:
               url: "/dictionary?word={{ $loopElement.word }}"

@@ -72,7 +72,12 @@ app.get('/dictionary', async (req, res) => {
         myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde dictionaryapi:', error);
-        res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+        if (error.response) {
+            const errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+            return res.status(error.response.status).send(errorMessage);
+        } else {
+            return res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+        }
       }
 });
 
