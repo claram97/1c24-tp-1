@@ -27,8 +27,6 @@ myStats = new StatsD({
   port: 8125
 });
 
-const HEADLINE_COUNT = 5;
-
 const SuccessCodes = {
   OK: 200,
   CREATED: 201,
@@ -52,38 +50,38 @@ app.use((req, res, next) => {
 });
 
 app.get('/ping', (req, res) => {
-    res.status(200).send("Pong!");
-    const responseTime = Date.now() - req.startTime;
-    myStats.gauge(`throughput.ping_response_time`, responseTime);
-    myStats.gauge(`latency.ping_latency`, responseTime);
+  res.status(200).send("Pong!");
+  const responseTime = Date.now() - req.startTime;
+  myStats.gauge(`throughput.ping_response_time`, responseTime);
+  myStats.gauge(`latency.ping_latency`, responseTime);
 });
 
 const CACHE_EXPIRATION_SECONDS = 40; // Tiempo de expiración en segundos
 
 app.get('/dictionary', async (req, res) => {
-    const word = req.query.word;
-    if (word == null) {
-      return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
-    }
+  const word = req.query.word;
+  if (word == null) {
+    return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
+  }
 
-    console.log(`Pedido de dictionary sobre la palabra ${word}`);
-    // Verificar si la palabra está en caché en Redis
-    const cachedDefinition = await redisClient.get(`dictionary:${word}`);
+  console.log(`Pedido de dictionary sobre la palabra ${word}`);
+  // Verificar si la palabra está en caché en Redis
+  const definitions = await redisClient.get(`dictionary:${word}`);
 
-    if (cachedDefinition) {
-      console.log(`La palabra ${word} se encontró en la caché de Redis.`);
-      const responseTime = Date.now() - req.startTime;
-      myStats.gauge(`throughput.dictionary_response_time`, responseTime);
-      myStats.gauge(`latency.dictionary_latency`, responseTime);
-      return res.status(200).json(JSON.parse(cachedDefinition));
-    }
+  if (definitions) {
+    console.log(`La palabra ${word} se encontró en la caché de Redis.`);
+    const responseTime = Date.now() - req.startTime;
+    myStats.gauge(`latency.dictionary_latency`, responseTime);
+    res.status(200).json(JSON.parse(definitions));
+  } else {
     try {
       // Si la palabra no está en caché, hacer la solicitud a la API
+      const dictStartTime = Date.now(); // Excluimos el tiempo de la pegada a redis de la latencia que deberia estar solo midiendo la latencia de la pegada al servicio externo
       const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      const latency = Date.now() - req.startTime;
+      const latency = Date.now() - dictStartTime;
       myStats.gauge(`latency.dictionary_latency`, latency);
-
-      const definitions = result.data.map(entry => ({
+  
+      definitions = result.data.map(entry => ({
           word: entry.word,
           phonetic: entry.phonetic,
           meanings: entry.meanings.map(meaning => ({
@@ -96,22 +94,26 @@ app.get('/dictionary', async (req, res) => {
               }))
           }))
       }));
-
-      // Guardar la palabra en caché en Redis con tiempo de expiración
-      await redisClient.set(`dictionary:${word}`, JSON.stringify(definitions), {EX: CACHE_EXPIRATION_SECONDS});
-
       res.status(200).json(definitions);
+    } catch (error) {
+      console.error('Error obteniendo resultado desde dictionaryapi:', error.response.statusText);
+      
+      if (error.response) {
+          const errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+          res.status(error.response.status).send(errorMessage);
+      } else {
+          res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+      }
       const responseTime = Date.now() - req.startTime;
       myStats.gauge(`throughput.dictionary_response_time`, responseTime);
-    } catch (error) {
-            console.error('Error obteniendo resultado desde dictionaryapi:', error.response.statusText);
-            if (error.response) {
-                const errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
-                return res.status(error.response.status).send(errorMessage);
-            } else {
-                return res.status(500).send('Error when consulting the dictionary, contact your service administrator');
-            }
-          }
+      return;
+    }
+  }
+  
+  // Guardar la palabra en caché en Redis con tiempo de expiración
+  await redisClient.set(`dictionary:${word}`, JSON.stringify(definitions), {EX: CACHE_EXPIRATION_SECONDS});
+  const responseTime = Date.now() - req.startTime;
+  myStats.gauge(`throughput.dictionary_response_time`, responseTime);
 });
 
 
