@@ -23,9 +23,27 @@ process.on('SIGTERM', async () => {
 
 var StatsD = require('hot-shots'),
 myStats = new StatsD({
-  host: 'graphite',  
+  host: 'graphite',
   port: 8125
 });
+
+const HEADLINE_COUNT = 5;
+
+const SuccessCodes = {
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204
+};
+
+const ErrorCodes = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
 
 // Middleware para establecer startTime en cada solicitud entrante
 app.use((req, res, next) => {
@@ -45,12 +63,13 @@ const CACHE_EXPIRATION_SECONDS = 40; // Tiempo de expiración en segundos
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
     if (word == null) {
-      res.status(400).send('Please provide a word');
+      return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
     }
+
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
     // Verificar si la palabra está en caché en Redis
     const cachedDefinition = await redisClient.get(`dictionary:${word}`);
-  
+
     if (cachedDefinition) {
       console.log(`La palabra ${word} se encontró en la caché de Redis.`);
       const responseTime = Date.now() - req.startTime;
@@ -85,9 +104,14 @@ app.get('/dictionary', async (req, res) => {
       const responseTime = Date.now() - req.startTime;
       myStats.gauge(`throughput.dictionary_response_time`, responseTime);
     } catch (error) {
-        console.error('Error obteniendo resultado desde dictionaryapi:', error);
-        res.status(500).send('Error when consulting the dictionary, contact your service administrator');
-    }
+            console.error('Error obteniendo resultado desde dictionaryapi:', error.response.statusText);
+            if (error.response) {
+                const errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+                return res.status(error.response.status).send(errorMessage);
+            } else {
+                return res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+            }
+          }
 });
 
 
@@ -98,25 +122,25 @@ app.get('/spaceflight_news', async (req, res) => {
     const spaceNews = await redisClient.get('space-news');
 
     let titles = [];
-    
+
     if (spaceNews) {
-      titles = JSON.parse(spaceNews);
-      const latency = Date.now() - req.startTime;
-      myStats.gauge(`latency.space_news_latency`, latency);
-      const responseTime = Date.now() - req.startTime;
-      myStats.gauge(`throughput.space_news_response_time`, responseTime);
-      return res.status(200).json(titles);
-    }
-    else {
-      try {
-        const result = await axios.get(`https://api.spaceflightnewsapi.net/v4/articles/?limit=${HEADLINE_COUNT}`);
+        titles = JSON.parse(spaceNews);
         const latency = Date.now() - req.startTime;
         myStats.gauge(`latency.space_news_latency`, latency);
-        result.data.results.forEach(result => {titles.push(result.title)} )
-      } catch (error) {
-        console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
-        return res.status(500).send('Error when consulting the news, contact your service administrator');
-      }
+        const responseTime = Date.now() - req.startTime;
+        myStats.gauge(`throughput.space_news_response_time`, responseTime);
+        res.status(200).json(titles);
+    }
+    else {
+        try {
+            const result = await axios.get(`https://api.spaceflightnewsapi.net/v4/articles/?limit=${HEADLINE_COUNT}`);
+            const latency = Date.now() - req.startTime;
+            myStats.gauge(`latency.space_news_latency`, latency);
+            result.data.results.forEach(result => {titles.push(result.title)} )
+        } catch (error) {
+            console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
+            return res.status(500).send('Error when consulting the news, contact your service administrator');
+        }
     }
 
     redisClient.set('space-news', JSON.stringify(titles), {EX: SPACE_NEWS_EXPIRATION});

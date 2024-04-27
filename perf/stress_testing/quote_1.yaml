@@ -38,9 +38,9 @@ config:
       rampTo: 0    
 
 scenarios:
-  - name: "Space News Test"
+  - name: "Quote Test"
     flow:
       - get:
-          url: "/spaceflight_news"
+          url: "/quote"
           expect:
             - statusCode: 200
