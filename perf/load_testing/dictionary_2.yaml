@@ -37,7 +37,5 @@ scenarios:
   - flow:
       - loop:
           - get:
-              url: "/dictionary"
-              params:
-                word: "{{ $loopElement.word }}"  # Use each word from the CSV file for lookup
+              url: "/dictionary?word={{ $loopElement.word }}"
         over: dictionaryData
