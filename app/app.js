@@ -6,10 +6,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const limiter = rateLimit({
-	windowMs: 50 * 1000, // 50 seconds
-	max: 300, // Limit each IP to max requests per `window` (here, per 50 secs)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	windowMs: 10 * 1000, // 10 segundos de ventana
+	max: 200, // Maximo de 200 por ventana
+  standardHeaders: true, // devolver el rate limit en el header `RateLimit-*`
+	legacyHeaders: false, // Desabilitar el header `X-RateLimit-*`
 })
 
 app.use(limiter);
@@ -76,8 +76,6 @@ app.get('/dictionary', async (req, res) => {
             }));
 
         res.status(200).json(definitions);
-        const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
         let errorMessage = '';
         if (error.response) {
@@ -88,9 +86,9 @@ app.get('/dictionary', async (req, res) => {
             res.status(500).send(errorMessage);
         }
         console.error(errorMessage)
-        const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       }
+      const responseTime = Date.now() - req.startTime;
+      myStats.gauge(`throughput.dictionary_response_time`, responseTime);
 });
 
 const HEADLINE_COUNT = 5;
