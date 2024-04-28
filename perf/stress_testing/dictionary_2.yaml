@@ -30,7 +30,7 @@ config:
       arrivalRate: 10
     - name: Ramp up to 40
       duration: 60
-      arrivalRate: 5
+      arrivalRate: 10
       rampTo: 40
     - name: Stable 40
       duration: 60
