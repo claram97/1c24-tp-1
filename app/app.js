@@ -27,6 +27,8 @@ myStats = new StatsD({
   port: 8125
 });
 
+const HEADLINE_COUNT = 5;
+
 const SuccessCodes = {
   OK: 200,
   CREATED: 201,
@@ -81,7 +83,7 @@ app.get('/dictionary', async (req, res) => {
       const result = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
       const latency = Date.now() - dictStartTime;
       myStats.gauge(`latency.dictionary_latency`, latency);
-  
+
       definitions = result.data.map(entry => ({
           word: entry.word,
           phonetic: entry.phonetic,
@@ -96,7 +98,7 @@ app.get('/dictionary', async (req, res) => {
           }))
       }));
       res.status(200).json(definitions);
-    } catch (error) {      
+    } catch (error) {
       let errorMessage = "";
       if (error.response) {
         errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
@@ -111,7 +113,7 @@ app.get('/dictionary', async (req, res) => {
       return;
     }
   }
-  
+
   // Guardar la palabra en caché en Redis con tiempo de expiración
   await redisClient.set(`dictionary:${word}`, JSON.stringify(definitions), {EX: CACHE_EXPIRATION_SECONDS});
   const responseTime = Date.now() - req.startTime;
