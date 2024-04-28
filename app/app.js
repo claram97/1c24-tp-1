@@ -69,10 +69,11 @@ app.get('/dictionary', async (req, res) => {
   let definitions = await redisClient.get(`dictionary:${word}`);
 
   if (definitions) {
+    definitions = JSON.parse(definitions);
     console.log(`La palabra ${word} se encontró en la caché de Redis.`);
     const responseTime = Date.now() - req.startTime;
     myStats.gauge(`latency.dictionary_latency`, responseTime);
-    res.status(200).json(JSON.parse(definitions));
+    res.status(200).json(definitions);
   } else {
     try {
       // Si la palabra no está en caché, hacer la solicitud a la API
