@@ -142,9 +142,17 @@ app.get('/spaceflight_news', async (req, res) => {
             myStats.gauge(`latency.space_news_latency`, latency);
             result.data.results.forEach(result => {titles.push(result.title)} )
         } catch (error) {
-            console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
-            return res.status(500).send('Error when consulting the news, contact your service administrator');
-        }
+                let errorMessage = "";
+                if (error.response) {
+                  errorMessage = `Error when consulting the news: ${error.response.statusText}`;
+                  res.status(error.response.status).send(errorMessage);
+                } else {
+                  errorMessage = 'Error when consulting the news, contact your service administrator';
+                  res.status(500).send(errorMessage);
+                }
+                console.error(errorMessage);
+                return;
+              }
     }
 
     redisClient.set('space-news', JSON.stringify(titles), {EX: SPACE_NEWS_EXPIRATION});
@@ -168,8 +176,15 @@ app.get('/quote', async (req, res) => {
         myStats.gauge(`latency.quote_response_time`, responseTime);
         return res.status(200).json(quote[0]);
       } catch (error) {
-        console.error('Error obteniendo resultado desde quotable:', error);
-        res.status(500).send('Error when retrieving quote, contact your service administrator');
+        let errorMessage = "";
+        if (error.response) {
+          errorMessage = `Error when retrieving quote: ${error.response.statusText}`;
+          res.status(error.response.status).send(errorMessage);
+        } else {
+          errorMessage = 'Error when retrieving quote, contact your service administrator';
+          res.status(500).send(errorMessage);
+        }
+        console.error(errorMessage);
       }
 });
 
