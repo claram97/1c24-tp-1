@@ -13,9 +13,26 @@ const limiter = rateLimit({
 })
 
 app.use(limiter);
+
+const SuccessCodes = {
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NO_CONTENT: 204
+};
+
+const ErrorCodes = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
+
 var StatsD = require('hot-shots'),
 myStats = new StatsD({
-  host: 'graphite',  
+  host: 'graphite',
   port: 8125
 });
 
@@ -34,6 +51,10 @@ app.get('/ping', (req, res) => {
 
 app.get('/dictionary', async (req, res) => {
     const word = req.query.word;
+    if (word == null) {
+      return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
+    }
+
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
 
     try {
@@ -58,8 +79,17 @@ app.get('/dictionary', async (req, res) => {
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
-        console.error('Error obteniendo resultado desde dictionaryapi:', error);
-        res.status(500).send('Error when consulting the dictionary, contact your service administrator');
+        let errorMessage = '';
+        if (error.response) {
+            errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+            res.status(error.response.status).send(errorMessage);
+        } else {
+            errorMessage = 'Error when consulting the dictionary, contact your service administrator';
+            res.status(500).send(errorMessage);
+        }
+        console.error(errorMessage)
+        const responseTime = Date.now() - req.startTime;
+        myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       }
 });
 
@@ -100,7 +130,7 @@ app.get('/quote', async (req, res) => {
 
         res.status(200).json(quote[0]);
         const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`latency.quote_response_time`, responseTime);
+        myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         console.error('Error obteniendo resultado desde quotable:', error);
         res.status(500).send('Error when retrieving quote, contact your service administrator');
