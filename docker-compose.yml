@@ -46,8 +46,6 @@ services:
         build: ./app
         ports:
             - "3000:3000"
-        links:
-            - redis
         healthcheck:
             test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
             interval: 10s
