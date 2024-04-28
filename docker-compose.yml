@@ -44,6 +44,11 @@ services:
 
     node:
         build: ./app
+        healthcheck:
+            test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
 
 volumes:
     grafana_config:
