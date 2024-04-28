@@ -1,0 +1,56 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555/api'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
+
+  payload:
+    path: "dictionary_2.csv"  # Path to your dictionary CSV file
+    fields:
+      - "word"  # Assuming your CSV file contains a column named "word"
+    loadAll: true
+    name: dictionaryData  # Refer to the data as "dictionaryData"
+
+  phases:
+    - name: Stable 2
+      duration: 60
+      arrivalRate: 2
+    - name: Ramp up to 10
+      duration: 60
+      arrivalRate: 2
+      rampTo: 10
+    - name: Stable 10
+      duration: 60
+      arrivalRate: 10
+    - name: Ramp up to 40
+      duration: 60
+      arrivalRate: 10
+      rampTo: 40
+    - name: Stable 40
+      duration: 60
+      arrivalRate: 40
+    - name: Ramp up to 80
+      duration: 60
+      arrivalRate: 40
+      rampTo: 80
+    - name: Stable 80
+      duration: 60
+      arrivalRate: 80
+    - name: Ramp down to 0
+      duration: 60
+      arrivalRate: 80
+      rampTo: 0
+
+scenarios:
+  - name: "Dictionary Test"
+    flow:
+      - loop:
+          - get:
+              url: "/dictionary?word={{ $loopElement.word }}"
+        over: dictionaryData

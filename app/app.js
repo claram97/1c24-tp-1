@@ -5,6 +5,7 @@ const { rateLimit } = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 const limiter = rateLimit({
 	windowMs: 10 * 1000, // 10 segundos de ventana
 	max: 200, // Maximo de 200 por ventana
@@ -76,6 +77,8 @@ app.get('/dictionary', async (req, res) => {
             }));
 
         res.status(200).json(definitions);
+        const responseTime = Date.now() - req.startTime;
+        myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
         let errorMessage = '';
         if (error.response) {
@@ -87,8 +90,6 @@ app.get('/dictionary', async (req, res) => {
         }
         console.error(errorMessage)
       }
-      const responseTime = Date.now() - req.startTime;
-      myStats.gauge(`throughput.dictionary_response_time`, responseTime);
 });
 
 const HEADLINE_COUNT = 5;
@@ -108,8 +109,15 @@ app.get('/spaceflight_news', async (req, res) => {
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.space_news_response_time`, responseTime);
       } catch (error) {
-        console.error('Error obteniendo resultado desde spaceflightnewsapi:', error);
-        res.status(500).send('Error when consulting the news, contact your service administrator');
+        let errorMessage = "";
+        if (error.response) {
+          errorMessage = `Error when consulting the news: ${error.response.statusText}`;
+          res.status(error.response.status).send(errorMessage);
+        } else {
+          errorMessage = 'Error when consulting the news, contact your service administrator';
+          res.status(500).send(errorMessage);
+        }
+        console.error(errorMessage);
       }
 });
 
@@ -130,8 +138,15 @@ app.get('/quote', async (req, res) => {
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
-        console.error('Error obteniendo resultado desde quotable:', error);
-        res.status(500).send('Error when retrieving quote, contact your service administrator');
+        let errorMessage = "";
+        if (error.response) {
+          errorMessage = `Error when retrieving quote: ${error.response.statusText}`;
+          res.status(error.response.status).send(errorMessage);
+        } else {
+          errorMessage = 'Error when retrieving quote, contact your service administrator';
+          res.status(500).send(errorMessage);
+        }
+        console.error(errorMessage);
       }
 });
 
