@@ -18,33 +18,33 @@ config:
     name: dictionaryData  # Refer to the data as "dictionaryData"
 
   phases:
-    - name: Stable
+    - name: Stable 2
       duration: 60
-      arrivalRate: 1
-    - name: Ramp up
+      arrivalRate: 2
+    - name: Ramp up to 10
       duration: 60
-      arrivalRate: 1
-      rampTo: 5
-    - name: Stable
+      arrivalRate: 2
+      rampTo: 10
+    - name: Stable 10
+      duration: 60
+      arrivalRate: 10
+    - name: Ramp up to 40
       duration: 60
       arrivalRate: 5
-    - name: Ramp up
-      duration: 60
-      arrivalRate: 5
-      rampTo: 20
-    - name: Stable
-      duration: 60
-      arrivalRate: 20
-    - name: Ramp up
-      duration: 60
-      arrivalRate: 20
       rampTo: 40
-    - name: Stable
+    - name: Stable 40
       duration: 60
       arrivalRate: 40
-    - name: Ramp down
+    - name: Ramp up to 80
       duration: 60
       arrivalRate: 40
+      rampTo: 80
+    - name: Stable 80
+      duration: 60
+      arrivalRate: 80
+    - name: Ramp down to 0
+      duration: 60
+      arrivalRate: 80
       rampTo: 0
 
 scenarios:
