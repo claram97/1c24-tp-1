@@ -19,25 +19,24 @@ config:
 
   phases:
     - name: Stable
-      duration: 30
-      arrivalRate: 2
+      duration: 60
+      arrivalRate: 1
     - name: Ramp up
       duration: 60
-      arrivalRate: 2
-      rampTo: 10
+      arrivalRate: 1
+      rampTo: 5
     - name: Stable
       duration: 60
-      arrivalRate: 10
+      arrivalRate: 5
     - name: Ramp down
-      duration: 30
-      arrivalRate: 10
+      duration: 60
+      arrivalRate: 5
       rampTo: 0
 
 scenarios:
-  - flow:
+  - name: "Dictionary Test"
+    flow:
       - loop:
           - get:
-              url: "/dictionary"
-              params:
-                word: "{{ $loopElement.word }}"  # Use each word from the CSV file for lookup
+              url: "/dictionary?word={{ $loopElement.word }}"
         over: dictionaryData

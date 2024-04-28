@@ -10,7 +10,7 @@ config:
 
   pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
 
-  #Duración: 3 minutos
+  #Duración: 5 minutos
   phases:
     - name: Stable
       duration: 30
@@ -18,15 +18,24 @@ config:
     - name: Ramp up
       duration: 60
       arrivalRate: 2
-      rampTo: 30
+      rampTo: 500
     - name: Stable
-      duration: 60
-      arrivalRate: 30
+      duration: 40
+      arrivalRate: 500
+    - name: Stable
+      duration: 40
+      arrivalRate: 500
     - name: Ramp down
       duration: 30
-      arrivalRate: 30
-      rampTo: 0
-    
+      arrivalRate: 500
+      rampTo: 300
+    - name: Stable
+      duration: 40
+      arrivalRate: 300
+    - name: Ramp down
+      duration: 60
+      arrivalRate: 300
+      rampTo: 0    
 
 scenarios:
   - name: "Space News Test"
