@@ -33,7 +33,7 @@ services:
         links:
             - graphite
             - node
-        command: -storage_driver="statsd" -storage_driver_host="graphite:8125" -storage_driver_db="cadvisor" -storage_driver_buffer_duration="1s"
+        command: -storage_driver="statsd" -storage_driver_host="graphite:8125" -storage_driver_db="cadvisor" -storage_driver_buffer_duration="1s" --docker_only=true
         ports:
             - "8080:8080"
         volumes:
@@ -46,6 +46,8 @@ services:
         build: ./app
         ports:
             - "3000:3000"
+        links:
+            - redis
         healthcheck:
             test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
             interval: 10s
