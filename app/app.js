@@ -130,7 +130,7 @@ app.get('/spaceflight_news', async (req, res) => {
         myStats.gauge(`latency.space_news_latency`, latency);
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.space_news_response_time`, responseTime);
-        res.status(SuccessCodes.OK).json(titles);
+        return res.status(SuccessCodes.OK).json(titles);
     }
     else {
         try {
