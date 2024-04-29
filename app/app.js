@@ -27,6 +27,8 @@ myStats = new StatsD({
   port: 8125
 });
 
+const HEADLINE_COUNT = 5;
+
 const SuccessCodes = {
   OK: 200,
   CREATED: 201,
@@ -50,7 +52,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/ping', (req, res) => {
-  res.status(200).send("Pong!");
+  res.status(SuccessCodes.OK).send("Pong!");
   const responseTime = Date.now() - req.startTime;
   myStats.gauge(`throughput.ping_response_time`, responseTime);
   myStats.gauge(`latency.ping_latency`, responseTime);
@@ -95,7 +97,7 @@ app.get('/dictionary', async (req, res) => {
               }))
           }))
       }));
-      res.status(200).json(definitions);
+      res.status(SuccessCodes.OK).json(definitions);
     } catch (error) {
       let errorMessage = "";
       if (error.response) {
@@ -103,9 +105,9 @@ app.get('/dictionary', async (req, res) => {
         res.status(error.response.status).send(errorMessage);
       } else {
         errorMessage = `Error when consulting the dictionary, contact your service administrator`;
-        res.status(500).send(errorMessage);
+        res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
       }
-      console.log(errorMessage);
+      console.error(errorMessage);
       const responseTime = Date.now() - req.startTime;
       myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       return;
@@ -117,7 +119,6 @@ app.get('/dictionary', async (req, res) => {
   const responseTime = Date.now() - req.startTime;
   myStats.gauge(`throughput.dictionary_response_time`, responseTime);
 });
-
 
 const HEADLINE_COUNT = 5;
 app.get('/spaceflight_news', async (req, res) => {
@@ -133,7 +134,7 @@ app.get('/spaceflight_news', async (req, res) => {
         myStats.gauge(`latency.space_news_latency`, latency);
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.space_news_response_time`, responseTime);
-        res.status(200).json(titles);
+        res.status(SuccessCodes.OK).json(titles);
     }
     else {
         try {
@@ -148,7 +149,7 @@ app.get('/spaceflight_news', async (req, res) => {
                   res.status(error.response.status).send(errorMessage);
                 } else {
                   errorMessage = 'Error when consulting the news, contact your service administrator';
-                  res.status(500).send(errorMessage);
+                  res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
                 }
                 console.error(errorMessage);
                 return;
@@ -156,7 +157,7 @@ app.get('/spaceflight_news', async (req, res) => {
     }
 
     redisClient.set('space-news', JSON.stringify(titles), {EX: SPACE_NEWS_EXPIRATION});
-    res.status(200).json(titles);
+    res.status(SuccessCodes.OK).json(titles);
     const responseTime = Date.now() - req.startTime;
     myStats.gauge(`throughput.space_news_response_time`, responseTime);
 });
@@ -172,34 +173,22 @@ app.get('/quote', async (req, res) => {
                       quote: quote.content,
                       author: quote.author
                     }));
+
+        res.status(SuccessCodes.OK).json(quote[0]);
         const responseTime = Date.now() - req.startTime;
-        myStats.gauge(`latency.quote_response_time`, responseTime);
-        return res.status(200).json(quote[0]);
+        myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         let errorMessage = "";
         if (error.response) {
-          errorMessage = `Error when retrieving quote: ${error.response.statusText}`;
+          errorMessage = `Error when retrieving quote: ${error.response.status}: ${error.response.statusText}`;
           res.status(error.response.status).send(errorMessage);
         } else {
           errorMessage = 'Error when retrieving quote, contact your service administrator';
-          res.status(500).send(errorMessage);
+          res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
         }
         console.error(errorMessage);
       }
 });
-
-
-// // Manejador para rutas no encontradas
-// app.use((req, res) => {
-//     res.status(404).json({ error: 'Page not found' });
-//     console.log("Pedido sobre ruta no existente")
-// });
-
-// // Manejador de errores
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({ error: 'Internal server error' });
-// });
 
 // Iniciamos el servidor
 app.listen(PORT, () => {
