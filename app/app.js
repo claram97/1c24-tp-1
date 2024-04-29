@@ -11,8 +11,6 @@ myStats = new StatsD({
   port: 8125
 });
 
-const HEADLINE_COUNT = 5;
-
 const SuccessCodes = {
   OK: 200,
   CREATED: 201,
