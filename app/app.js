@@ -27,8 +27,6 @@ myStats = new StatsD({
   port: 8125
 });
 
-const HEADLINE_COUNT = 5;
-
 const SuccessCodes = {
   OK: 200,
   CREATED: 201,
@@ -108,8 +106,6 @@ app.get('/dictionary', async (req, res) => {
         res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
       }
       console.error(errorMessage);
-      const responseTime = Date.now() - req.startTime;
-      myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       return;
     }
   }
