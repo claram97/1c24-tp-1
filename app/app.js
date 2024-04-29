@@ -132,7 +132,6 @@ app.get('/quote', async (req, res) => {
         myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         let errorMessage = "";
-        console.log(error);
         if (error.response) {
           errorMessage = `Error when retrieving quote: ${error.response.status}: ${error.response.statusText}`;
           res.status(error.response.status).send(errorMessage);
