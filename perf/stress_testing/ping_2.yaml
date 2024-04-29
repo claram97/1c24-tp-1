@@ -18,20 +18,23 @@ config:
     - name: Ramp up
       duration: 60
       arrivalRate: 2
-      rampTo: 400
+      rampTo: 600
     - name: Stable
-      duration: 10
-      arrivalRate: 400
+      duration: 40
+      arrivalRate: 600
+    - name: Stable
+      duration: 40
+      arrivalRate: 600
+    - name: Ramp down
+      duration: 20
+      arrivalRate: 600
+      rampTo: 400
     - name: Stable
       duration: 40
       arrivalRate: 400
     - name: Ramp down
-      duration: 5
+      duration: 40
       arrivalRate: 400
-      rampTo: 300
-    - name: Ramp down
-      duration: 30
-      arrivalRate: 300
       rampTo: 0    
 
 scenarios:
