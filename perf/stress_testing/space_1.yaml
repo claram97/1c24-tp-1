@@ -12,30 +12,27 @@ config:
 
   #Duración: 5 minutos
   phases:
-    - name: Stable
+    - name: Stable(2) 1/6
       duration: 30
       arrivalRate: 2
-    - name: Ramp up
+    - name: Ramp up(2->30) 2/6
       duration: 60
       arrivalRate: 2
-      rampTo: 500
-    - name: Stable
-      duration: 40
-      arrivalRate: 500
-    - name: Stable
-      duration: 40
-      arrivalRate: 500
-    - name: Ramp down
-      duration: 30
-      arrivalRate: 500
-      rampTo: 300
-    - name: Stable
-      duration: 40
-      arrivalRate: 300
-    - name: Ramp down
+      rampTo: 30
+    - name: Stable(30) 3/6
       duration: 60
-      arrivalRate: 300
-      rampTo: 0    
+      arrivalRate: 30
+    - name: Ramp up(30->100) 4/6
+      duration: 60
+      arrivalRate: 30
+      rampTo: 100
+    - name: Stable(100) 5/6
+      duration: 60
+      arrivalRate: 100
+    - name: Ramp down(100-0) 6/6
+      duration: 60
+      arrivalRate: 100
+      rampTo: 0
 
 scenarios:
   - name: "Space News Test"
