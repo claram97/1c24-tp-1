@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 
 app.get('/ping', (req, res) => {
   console.log("Pong!")
-  res.status(200).send("Pong!");
+  res.status(SuccessCodes.OK).send("Pong!");
   const responseTime = Date.now() - req.startTime;
   myStats.gauge(`throughput.ping_response_time`, responseTime);
   myStats.gauge(`latency.ping_latency`, responseTime);
@@ -49,7 +49,7 @@ app.get('/dictionary', async (req, res) => {
     if (word == null) {
       return res.status(ErrorCodes.BAD_REQUEST).send('Please provide a word');
     }
-
+    
     console.log(`Pedido de dictionary sobre la palabra ${word}`);
 
     try {
@@ -70,22 +70,23 @@ app.get('/dictionary', async (req, res) => {
               }))
             }));
 
-        res.status(200).json(definitions);
+        res.status(SuccessCodes.OK).json(definitions);
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
         let errorMessage = "";
         if (error.response) {
-          errorMessage = `Error when consulting the dictionary: ${error.response.statusText}`;
+          errorMessage = `Error when consulting the dictionary:  ${error.response.status}: ${error.response.statusText}`;
           res.status(error.response.status).send(errorMessage);
         } else {
           errorMessage = 'Error when consulting the dictionary, contact your service administrator';
-          res.status(500).send(errorMessage);
+          res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
         }
         console.error(errorMessage);
       }
 });
 
+const HEADLINE_COUNT = 5;
 app.get('/spaceflight_news', async (req, res) => {
     console.log(`Pedido de noticias sobre el espacio`);
 
@@ -98,17 +99,21 @@ app.get('/spaceflight_news', async (req, res) => {
 
         result.data.results.forEach(result => {titles.push(result.title)} )
 
-        res.status(200).json(titles);
+        res.status(SuccessCodes.OK).json(titles);
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.space_news_response_time`, responseTime);
       } catch (error) {
         let errorMessage = "";
         if (error.response) {
-          errorMessage = `Error when consulting the news: ${error.response.statusText}`;
+          errorMessage = `Error when consulting the news:  ${error.response.status}: ${error.response.statusText}`;
           res.status(error.response.status).send(errorMessage);
         } else {
-          errorMessage = 'Error when consulting the news, contact your service administrator';
-          res.status(500).send(errorMessage);
+          let errorCode = "";
+          if(error.code){
+            errorCode= error.code;
+          }
+          errorMessage = `${errorCode} error when consulting the news, contact your service administrator`;
+          res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
         }
         console.error(errorMessage);
       }
@@ -127,34 +132,21 @@ app.get('/quote', async (req, res) => {
                       author: quote.author
                     }));
 
-        res.status(200).json(quote[0]);
+        res.status(SuccessCodes.OK).json(quote[0]);
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.quote_response_time`, responseTime);
       } catch (error) {
         let errorMessage = "";
         if (error.response) {
-          errorMessage = `Error when retrieving quote: ${error.response.statusText}`;
+          errorMessage = `Error when retrieving quote: ${error.response.status}: ${error.response.statusText}`;
           res.status(error.response.status).send(errorMessage);
         } else {
           errorMessage = 'Error when retrieving quote, contact your service administrator';
-          res.status(500).send(errorMessage);
+          res.status(ErrorCodes.INTERNAL_SERVER_ERROR).send(errorMessage);
         }
         console.error(errorMessage);
       }
 });
-
-
-// // Manejador para rutas no encontradas
-// app.use((req, res) => {
-//     res.status(404).json({ error: 'Page not found' });
-//     console.log("Pedido sobre ruta no existente")
-// });
-
-// // Manejador de errores
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({ error: 'Internal server error' });
-// });
 
 // Iniciamos el servidor
 app.listen(PORT, () => {
