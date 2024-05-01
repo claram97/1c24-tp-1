@@ -71,7 +71,6 @@ app.get('/dictionary', async (req, res) => {
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
-        console.log(error)
         let errorMessage = "";
         if (error.response) {
           errorMessage = `Error when consulting the dictionary:  ${error.response.status}: ${error.response.statusText}`;
