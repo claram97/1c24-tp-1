@@ -23,7 +23,7 @@ process.on('SIGTERM', async () => {
 
 var StatsD = require('hot-shots'),
 myStats = new StatsD({
-  host: 'graphite',
+  host: 'graphite',  
   port: 8125
 });
 
@@ -89,10 +89,12 @@ app.get('/dictionary', async (req, res) => {
               partOfSpeech: meaning.partOfSpeech,
               definitions: meaning.definitions.map(definition => ({
                   definition: definition.definition,
-                  synonyms: definition.synonyms,
-                  antonyms: definition.antonyms,
+                  synonyms: definition.synonyms.map(synonym => synonym),
+                  antonyms: definition.antonyms.map(antonym => antonym),
                   example: definition.example
-              }))
+              })),
+              synonyms: meaning.synonyms.map(synonym => synonym),
+              antonyms: meaning.antonyms.map(antonyms => antonyms)
           }))
       }));
       res.status(SuccessCodes.OK).json(definitions);
@@ -165,6 +167,7 @@ app.get('/quote', async (req, res) => {
         const result = await axios.get(`https://api.quotable.io/quotes/random`);
         const latency = Date.now() - req.startTime;
         myStats.gauge(`latency.quote_latency`, latency);
+
         const quote = result.data.map(quote => ({
                       quote: quote.content,
                       author: quote.author
