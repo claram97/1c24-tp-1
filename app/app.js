@@ -61,10 +61,12 @@ app.get('/dictionary', async (req, res) => {
                 partOfSpeech: meaning.partOfSpeech,
                 definitions: meaning.definitions.map(definition => ({
                   definition: definition.definition,
-                  synonyms: definition.synonyms,
-                  antonyms: definition.antonyms,
+                  synonyms: definition.synonyms.map(synonym => synonym),
+                  antonyms: definition.antonyms.map(antonym => antonym),
                   example: definition.example
-                }))
+                })),
+                synonyms: meaning.synonyms.map(synonym => synonym),
+                antonyms: meaning.antonyms.map(antonyms => antonyms)
               }))
             }));
 
