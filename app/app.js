@@ -58,10 +58,12 @@ app.get('/dictionary', async (req, res) => {
                 partOfSpeech: meaning.partOfSpeech,
                 definitions: meaning.definitions.map(definition => ({
                   definition: definition.definition,
-                  synonyms: definition.synonyms,
-                  antonyms: definition.antonyms,
+                  synonyms: definition.synonyms.map(synonym => synonym),
+                  antonyms: definition.antonyms.map(antonym => antonym),
                   example: definition.example
-                }))
+                })),
+                synonyms: meaning.synonyms.map(synonym => synonym),
+                antonyms: meaning.antonyms.map(antonyms => antonyms)
               }))
             }));
 
@@ -69,6 +71,7 @@ app.get('/dictionary', async (req, res) => {
         const responseTime = Date.now() - req.startTime;
         myStats.gauge(`throughput.dictionary_response_time`, responseTime);
       } catch (error) {
+        console.log(error)
         let errorMessage = "";
         if (error.response) {
           errorMessage = `Error when consulting the dictionary:  ${error.response.status}: ${error.response.statusText}`;
